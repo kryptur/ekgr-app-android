@@ -3,6 +3,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="de.lbader.apps.ekgr.MainActivity">
 
+
+    <item
+        android:title="Neu laden"
+        android:id="@+id/action_reload"
+        android:orderInCategory="100"
+        app:showAsAction="always"
+        android:icon="@drawable/ic_action_refresh" />
+
     <item
         android:title="Infobox"
         android:id="@+id/action_infobox"

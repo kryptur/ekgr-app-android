@@ -1,6 +1,8 @@
 package de.lbader.apps.ekgr;
 
 import android.app.Activity;
+import android.content.DialogInterface;
+import android.graphics.Bitmap;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
@@ -9,6 +11,7 @@ import android.support.v4.app.FragmentManager;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -72,14 +75,33 @@ public class MainActivity extends ActionBarActivity
         myWebView = (WebView) findViewById(R.id.webView);
         swipeContainer = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
 
+        myWebView.addJavascriptInterface(new WebAppInterface(this), "App");
 
         WebSettings webSettings = myWebView.getSettings();
         webSettings.setJavaScriptEnabled(true);
         webSettings.setUserAgentString("EKGR-App");
         myWebView.setWebChromeClient(new WebChromeClient());
         myWebView.setWebViewClient(new WebViewClient(){
+            private int running = 0;
+
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                running++;
+                myWebView.loadUrl(url);
+                return true;
+            }
+
+            @Override
             public void onPageFinished(WebView view, String url) {
+                running = Math.max(running, 1);
                 swipeContainer.setRefreshing(false);
+            }
+
+            @Override
+            public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                if (--running == 0) {
+                    swipeContainer.setRefreshing(true);
+                }
             }
         });
 
@@ -237,6 +259,26 @@ public class MainActivity extends ActionBarActivity
             case 3:
                 mTitle = getString(R.string.title_section3);
                 break;
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (myWebView.canGoBack()) {
+            myWebView.goBack();
+        } else {
+            new AlertDialog.Builder(this)
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .setTitle("App beenden?")
+                    .setMessage("Wollen Sie die App wirklich beenden?")
+                    .setPositiveButton("Ja", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            finish();
+                        }
+                    })
+                    .setNegativeButton("Nein", null)
+                    .show();
         }
     }
 

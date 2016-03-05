@@ -58,7 +58,7 @@ public class NavigationDrawerFragment extends Fragment {
 
     private int mCurrentSelectedPosition = 0;
     private boolean mFromSavedInstanceState;
-    private boolean mUserLearnedDrawer;
+    private boolean mUserLearnedDrawer = false;
 
     public NavigationDrawerFragment() {
     }
@@ -245,12 +245,16 @@ public class NavigationDrawerFragment extends Fragment {
             return true;
         }
 
-        if (item.getItemId() == R.id.action_infobox) {
-            ((MainActivity)getActivity()).myWebView.loadUrl("javascript:toggleInfobox()");
-            return true;
+        switch (item.getItemId()) {
+            case R.id.action_infobox:
+                ((MainActivity)getActivity()).myWebView.loadUrl("javascript:toggleInfobox()");
+                return true;
+            case R.id.action_reload:
+                ((MainActivity)getActivity()).myWebView.reload();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
-
-        return super.onOptionsItemSelected(item);
     }
 
     /**
