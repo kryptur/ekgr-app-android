@@ -50,4 +50,14 @@ public class WebAppInterface {
         intent.putExtras(b);
         mContext.startActivity(intent);
     }
+
+    @JavascriptInterface
+    public void shareNews(String title, String text, String created, String id) {
+        String toShare = title.trim() + "\n" + text.trim() + "\n\n" + "http://ekgr.de/news_" + id + ".aspx";
+        Intent send = new Intent();
+        send.setAction(Intent.ACTION_SEND);
+        send.putExtra(Intent.EXTRA_TEXT, toShare);
+        send.setType("text/plain");
+        mContext.startActivity(send);
+    }
 }
