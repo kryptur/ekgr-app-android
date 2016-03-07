@@ -2,6 +2,7 @@ package de.lbader.apps.ekgr;
 
 import android.app.Activity;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -83,26 +84,33 @@ public class MainActivity extends ActionBarActivity
         webSettings.setUserAgentString("EKGR-App");
         myWebView.setWebChromeClient(new WebChromeClient());
         myWebView.setWebViewClient(new WebViewClient(){
-            private int running = 0;
 
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                running++;
-                myWebView.loadUrl(url);
-                return true;
+                Uri parsed = Uri.parse(url);
+
+                if (url.startsWith("mailto:")) {
+                    Intent intent = new Intent(Intent.ACTION_VIEW, parsed);
+                    startActivity(intent);
+                    return true;
+                } else if (!url.contains("http://ekgr.de/") && !url.contains("http://www.ekgr.de/")) {
+                    Intent intent = new Intent(Intent.ACTION_VIEW, parsed);
+                    startActivity(intent);
+                    return true;
+                } else {
+                    view.loadUrl(url);
+                    return false;
+                }
             }
 
             @Override
             public void onPageFinished(WebView view, String url) {
-                running = Math.max(running, 1);
                 swipeContainer.setRefreshing(false);
             }
 
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
-                if (--running == 0) {
-                    swipeContainer.setRefreshing(true);
-                }
+                swipeContainer.setRefreshing(true);
             }
         });
 
