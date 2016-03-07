@@ -3,6 +3,7 @@ package de.lbader.apps.ekgr;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
@@ -105,7 +106,20 @@ public class MainActivity extends ActionBarActivity
             }
         });
 
-        myWebView.loadUrl("http://ekgr.de/app.aspx");
+        // Parse param
+        if (getIntent().getData() != null) {
+            Log.d("OPEN", "YES");
+            Uri data = getIntent().getData();
+            String scheme = data.getScheme();
+            String path = data.getEncodedSchemeSpecificPart();
+            myWebView.loadUrl(scheme + "://" + path);
+        } else {
+            Log.d("OPEN", "NO");
+            myWebView.loadUrl("http://ekgr.de/app.aspx");
+        }
+
+
+
 
         // Setup refresh listener which triggers new data loading
         swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {

@@ -19,6 +19,13 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <intent-filter>
+                <data android:scheme="http" android:host="ekgr.de"/>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+            </intent-filter>
         </activity>
         <activity
             android:name=".GalleryViewer"
@@ -29,12 +36,6 @@
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="de.lbader.apps.ekgr.MainActivity" />
-
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
     </application>
 
