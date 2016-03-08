@@ -4,6 +4,10 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
+    <permission android:name="de.lbader.apps.ekgr.permission.C2D_MESSAGE"
+        android:protectionLevel="signature" />
+    <uses-permission android:name="de.lbader.apps.ekgr.permission.C2D_MESSAGE" />
 
     <application
         android:allowBackup="true"
@@ -37,6 +41,34 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="de.lbader.apps.ekgr.MainActivity" />
         </activity>
+
+        /* GCM */
+        <receiver android:name="com.google.android.gms.gcm.GcmReceiver"
+            android:exported="true"
+            android:permission="com.google.android.c2dm.permission.SEND">
+
+            <intent-filter>
+                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+            </intent-filter>
+        </receiver>
+        <service android:name="de.lbader.apps.ekgr.gcm.EkgrGcmListenerService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+            </intent-filter>
+        </service>
+        <service android:name="de.lbader.apps.ekgr.gcm.EgkrInstanceIdListenerService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.android.gms.iid.InstanceID" />
+            </intent-filter>
+        </service>
+
+        <service android:name="de.lbader.apps.ekgr.gcm.RegistrationIntentService"
+            android:exported="false">
+
+        </service>
+
     </application>
 
 </manifest>
