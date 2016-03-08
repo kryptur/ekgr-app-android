@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -78,12 +79,11 @@ public class ImageFragment extends Fragment {
         ProgressBar progressBar = (ProgressBar) view.findViewById(R.id.loading);
         progressBar.setVisibility(View.VISIBLE);
 
+        Log.d("IMG", url);
 
         Picasso
                 .with(view.getContext())
                 .load(url)
-                .fit()
-                .centerInside()
                 .into(photoView, new ImageLoadedCallback(progressBar) {
                     @Override
                     public void onSuccess() {
