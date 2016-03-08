@@ -59,6 +59,11 @@ public class MainActivity extends ActionBarActivity
 
 
     @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        myWebView.saveState(outState);
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -116,14 +121,16 @@ public class MainActivity extends ActionBarActivity
 
         // Parse param
         if (getIntent().getData() != null) {
-            Log.d("OPEN", "YES");
             Uri data = getIntent().getData();
             String scheme = data.getScheme();
             String path = data.getEncodedSchemeSpecificPart();
             myWebView.loadUrl(scheme + "://" + path);
         } else {
-            Log.d("OPEN", "NO");
-            myWebView.loadUrl("http://ekgr.de/app.aspx");
+            if (savedInstanceState != null) {
+                myWebView.restoreState(savedInstanceState);
+            } else {
+                myWebView.loadUrl("http://ekgr.de/app.aspx");
+            }
         }
 
 

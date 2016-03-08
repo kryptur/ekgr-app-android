@@ -13,30 +13,25 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".MainActivity"
-            android:label="@string/app_name">
+            android:label="@string/app_name"
+            android:configChanges="orientation|screenSize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
             <intent-filter>
-                <data android:scheme="http" android:host="ekgr.de"/>
+                <data
+                    android:host="ekgr.de"
+                    android:scheme="http" />
+
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".GalleryViewer"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/title_activity_gallery_viewer"
-            android:parentActivityName=".MainActivity"
-            android:theme="@style/FullscreenTheme">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="de.lbader.apps.ekgr.MainActivity" />
-        </activity>
+        <activity android:name=".imageviewer.ImageViewer"></activity>
     </application>
 
 </manifest>
