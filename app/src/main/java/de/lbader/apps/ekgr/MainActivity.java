@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.support.design.widget.NavigationView;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
@@ -13,13 +14,17 @@ import android.support.v4.app.FragmentManager;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.SubMenu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.support.v4.widget.DrawerLayout;
@@ -29,33 +34,40 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ViewSwitcher;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONArray;
 
 import java.util.ArrayList;
+import java.util.List;
 
-public class MainActivity extends ActionBarActivity
-        implements NavigationDrawerFragment.NavigationDrawerCallbacks {
+public class MainActivity extends AppCompatActivity {
 
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
      */
-    private NavigationDrawerFragment mNavigationDrawerFragment;
     public WebView myWebView;
+    private WebAppInterface mWebApp;
     private SwipeRefreshLayout swipeContainer;
     /**
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.
      */
     private CharSequence mTitle;
 
-
     public JSONArray navigation;
     private int lvl1, lvl2, level;
+
+    // New navigation
+    private Toolbar toolbar;
+    private NavigationView navigationView;
+    private DrawerLayout drawerLayout;
+    private ViewSwitcher viewSwitcher;
 
 
     @Override
@@ -68,21 +80,39 @@ public class MainActivity extends ActionBarActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        toolbar.inflateMenu(R.menu.global);
 
-        mNavigationDrawerFragment = (NavigationDrawerFragment)
-                getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
-        mTitle = getTitle();
+        navigationView = (NavigationView) findViewById(R.id.navigation_view);
 
-        // Set up the drawer.
-        mNavigationDrawerFragment.setUp(
-                R.id.navigation_drawer,
-                (DrawerLayout) findViewById(R.id.drawer_layout));
+        drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle actionBarDrawerToggle = new ActionBarDrawerToggle(
+                this,
+                drawerLayout,
+                toolbar,
+                R.string.navigation_drawer_open,
+                R.string.navigation_drawer_close) {
 
+            @Override
+            public void onDrawerClosed(View drawerView) {
+                super.onDrawerClosed(drawerView);
+            }
+
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+            }
+        };
+
+        drawerLayout.addDrawerListener(actionBarDrawerToggle);
+        actionBarDrawerToggle.syncState();
 
         myWebView = (WebView) findViewById(R.id.webView);
         swipeContainer = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
 
-        myWebView.addJavascriptInterface(new WebAppInterface(this), "App");
+        mWebApp = new WebAppInterface(this);
+        myWebView.addJavascriptInterface(mWebApp, "App");
 
         WebSettings webSettings = myWebView.getSettings();
         webSettings.setJavaScriptEnabled(true);
@@ -149,20 +179,11 @@ public class MainActivity extends ActionBarActivity
                 android.R.color.holo_orange_light,
                 android.R.color.holo_red_light);
         swipeContainer.setEnabled(false);
-        /*
-        myWebView.getViewTreeObserver().addOnScrollChangedListener(new ViewTreeObserver.OnScrollChangedListener() {
-            @Override
-            public void onScrollChanged() {
-                if (myWebView.getScrollY() == 0) {
-                    swipeContainer.setEnabled(true);
-                } else {
-                    swipeContainer.setEnabled(false);
-                }
-            }
-        });
-         */
+
+
 
         navigation = null;
+        navigationView.getMenu().add("Navigation wird geladen...");
         new RequestTask("navi", new RequestTask.RequestCallback() {
             @Override
             public void callback(JSONObject res) {
@@ -172,7 +193,7 @@ public class MainActivity extends ActionBarActivity
                         lvl1 = 0;
                         lvl2 = 0;
                         level = 0;
-                        showNavi();
+                        initNavi();
                     } catch (JSONException ex) {
                         Log.e("JSON", ex.getMessage());
                     }
@@ -180,12 +201,119 @@ public class MainActivity extends ActionBarActivity
             }
         }).execute("");
 
+        ImageView helpButton = (ImageView) navigationView.getHeaderView(0).findViewById(R.id.help_button);
+
+        helpButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                myWebView.loadUrl("http://ekgr.de/app-nutzung-android.aspx");
+                drawerLayout.closeDrawers();
+            }
+        });
+    }
+
+    private void initNavi() throws JSONException {
+        JSONArray elements = navigation;
+
+        String title;
+        JSONObject elem;
+
+        Menu topM = navigationView.getMenu();
+        topM.clear();
+
+        buildMenu(topM, elements, "");
+    }
+
+    private void buildMenu(Menu topMenu, JSONArray elements, String category) throws JSONException {
+        String title;
+
+        Menu menu = topMenu;
+
+        if (level > 0) {
+            topMenu.add("Zurück").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+                 @Override
+                 public boolean onMenuItemClick(MenuItem item) {
+                     level--;
+                     showNavi();
+                     return false;
+                 }
+            });
+            menu = topMenu.addSubMenu(category);
+        }
+
+
+
+        for (int i = 0; i < elements.length(); ++i) {
+            final JSONObject elem = elements.getJSONObject(i);
+            title = elem.getString("title").replace("<br />", "\n");
+            /*if (elem.getJSONArray("children").length() > 0) {
+                SubMenu subMenu = topMenu.addSubMenu(title);
+                buildMenu(subMenu, elem.getJSONArray("children"));
+            } else {
+                topMenu.add(title);
+            }*/
+            final int id = i;
+            final boolean hasSub = elem.getJSONArray("children").length() > 0;
+            MenuItem item = menu.add(title);
+            item.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+                @Override
+                public boolean onMenuItemClick(MenuItem item) {
+                    try {
+                        if (hasSub) {
+                            switch (level) {
+                                case 0:
+                                    lvl1 = id;
+                                    level++;
+                                    break;
+                                case 1:
+                                    lvl2 = id;
+                                    level++;
+                                    break;
+                                default:
+                                    break;
+                            }
+                            showNavi();
+                        } else {
+                            String link = elem.getString("link");
+                            if (!link.equals("#")) {
+                                myWebView.loadUrl("http://ekgr.de/" + link);
+                                drawerLayout.closeDrawers();
+                            }
+                        }
+                        Log.d("NAVI", level + "-" + lvl1 + "-" + lvl2);
+                    } catch (JSONException ex) {
+
+                    }
+                    return false;
+
+                }
+            });
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        this.getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_infobox:
+                myWebView.loadUrl("javascript:toggleInfobox()");
+                return true;
+            case R.id.action_reload:
+                myWebView.reload();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     private void showNavi() {
-        String[] entries;
-        ArrayList<String> list = new ArrayList<>();
         JSONArray elements = navigation;
+        String title = "";
         try {
             switch (level) {
                 case 0:
@@ -193,101 +321,18 @@ public class MainActivity extends ActionBarActivity
                     break;
                 case 1:
                     elements = navigation.getJSONObject(lvl1).getJSONArray("children");
+                    title = navigation.getJSONObject(lvl1).getString("title").replace("<br />", "\n");
                     break;
                 case 2:
                     elements = navigation.getJSONObject(lvl1).getJSONArray("children").getJSONObject(lvl2).getJSONArray("children");
+                    title = navigation.getJSONObject(lvl1).getJSONArray("children").getJSONObject(lvl2).getString("title").replace("<br />", "\n");
             }
 
-            for (int i = 0; i < elements.length(); ++i) {
-                list.add(elements.getJSONObject(i).getString("title").replace("<br />", "\n"));
-            }
-            if (level > 0) {
-                list.add(0, "Zurück");
-            }
+            Menu menu = navigationView.getMenu();
+            menu.clear();
+            buildMenu(menu, elements, title);
         } catch (JSONException ex) {
             Log.e("JSON", ex.getMessage());
-        }
-
-
-        entries = list.toArray(new String[list.size()]);
-
-        mNavigationDrawerFragment.mDrawerListView.setAdapter(new ArrayAdapter<String>(
-                mNavigationDrawerFragment.themedContext,
-                android.R.layout.simple_list_item_activated_1,
-                android.R.id.text1,
-                entries
-        ));
-    }
-
-    @Override
-    public void onNavigationDrawerItemSelected(int position) {
-        // update the main content by replacing fragments
-        FragmentManager fragmentManager = getSupportFragmentManager();
-
-        if (navigation == null) {
-            return;
-        }
-
-        boolean close = false;
-        JSONObject elem = null;
-        try {
-            switch (level) {
-                case 0:
-                    elem = navigation.getJSONObject(position);
-                    lvl1 = position;
-                    break;
-                case 1:
-                    if (position == 0) {
-                        elem = null;
-                        level = 0;
-                    } else {
-                        elem = navigation.getJSONObject(lvl1).getJSONArray("children").getJSONObject(position - 1);
-                        lvl2 = position - 1;
-                    }
-                    break;
-                case 2:
-                    if (position == 0) {
-                        elem = null;
-                        level = 1;
-                    } else {
-                        elem = navigation.getJSONObject(lvl1).getJSONArray("children").getJSONObject(lvl2).getJSONArray("children").getJSONObject(position - 1);
-                    }
-                    break;
-            }
-
-            if (elem != null) {
-                String link = elem.getString("link");
-                if (!link.equals("#")) {
-                    myWebView.loadUrl("http://ekgr.de/" + link);
-
-                    if (mNavigationDrawerFragment.mDrawerLayout != null) {
-                        mNavigationDrawerFragment.mDrawerLayout.closeDrawer(mNavigationDrawerFragment.mFragmentContainerView);
-                    }
-                } else {
-                    level++;
-                }
-            }
-            showNavi();
-
-        } catch (JSONException ex) {
-            Log.e("JSON", ex.getMessage());
-        }
-
-
-
-    }
-
-    public void onSectionAttached(int number) {
-        switch (number) {
-            case 1:
-                mTitle = getString(R.string.title_section1);
-                break;
-            case 2:
-                mTitle = getString(R.string.title_section2);
-                break;
-            case 3:
-                mTitle = getString(R.string.title_section3);
-                break;
         }
     }
 
@@ -318,43 +363,12 @@ public class MainActivity extends ActionBarActivity
         actionBar.setTitle(mTitle);
     }
 
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    public static class PlaceholderFragment extends Fragment {
-        /**
-         * The fragment argument representing the section number for this
-         * fragment.
-         */
-        private static final String ARG_SECTION_NUMBER = "section_number";
-
-        public PlaceholderFragment() {
-        }
-
-        /**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         */
-        public static PlaceholderFragment newInstance(int sectionNumber) {
-            PlaceholderFragment fragment = new PlaceholderFragment();
-            Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            fragment.setArguments(args);
-            return fragment;
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-            return rootView;
-        }
-
-        @Override
-        public void onAttach(Activity activity) {
-            super.onAttach(activity);
-            ((MainActivity) activity).onSectionAttached(
-                    getArguments().getInt(ARG_SECTION_NUMBER));
+    public int getStatusBarHeight() {
+        int resId = getResources().getIdentifier("status_bar_height", "dimen", "android");
+        if (resId > 0) {
+            return getResources().getDimensionPixelSize(resId);
+        } else {
+            return 0;
         }
     }
 

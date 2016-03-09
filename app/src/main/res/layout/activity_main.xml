@@ -4,30 +4,33 @@
     android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="de.lbader.apps.ekgr.MainActivity">
+    android:fitsSystemWindows="true"
+    tools:context="de.lbader.apps.ekgr.MainActivity"
+    style="@style/AppTheme">
 
     <!-- As the main content view, the view below consumes the entire
          space available using match_parent in both dimensions. -->
 
     <!-- The drawer is given a fixed width in dp and extends the full height of
          the container. -->
-    <android.support.v4.widget.SwipeRefreshLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/swipeContainer"
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-        <WebView
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:id="@+id/webView" />
-    </android.support.v4.widget.SwipeRefreshLayout>
+        <include layout="@layout/toolbar" android:id="@+id/toolbar" />
 
-    <fragment
-        android:id="@+id/navigation_drawer"
-        android:name="de.lbader.apps.ekgr.NavigationDrawerFragment"
-        android:layout_width="@dimen/navigation_drawer_width"
-        android:layout_height="match_parent"
-        android:layout_gravity="start"
-        tools:layout="@layout/drawer_main" />
+        <android.support.v4.widget.SwipeRefreshLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/swipeContainer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@id/toolbar">
+            <WebView
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:id="@+id/webView" />
+        </android.support.v4.widget.SwipeRefreshLayout>
+    </RelativeLayout>
+
+    <include layout="@layout/navigation_view" />
 
 </android.support.v4.widget.DrawerLayout>

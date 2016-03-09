@@ -3,6 +3,7 @@ package de.lbader.apps.ekgr;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -80,7 +81,7 @@ public class RequestTask extends AsyncTask<String, String, String> {
             try {
                 JSONObject obj = new JSONObject(result);
                 callback.callback(obj);
-            } catch (Exception ex) {
+            } catch (JSONException ex) {
                 Log.e("API", "Could not parse JSON result: " + ex.getMessage());
                 Log.e("API", "Invalid result: " + result);
                 ex.printStackTrace();
