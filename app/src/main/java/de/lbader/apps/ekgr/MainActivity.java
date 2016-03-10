@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
      */
     public WebView myWebView;
     private WebAppInterface mWebApp;
-    private SwipeRefreshLayout swipeContainer;
+    public SwipeRefreshLayout swipeContainer;
     /**
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.
      */
@@ -133,6 +133,7 @@ public class MainActivity extends AppCompatActivity {
                     startActivity(intent);
                     return true;
                 } else {
+                    swipeContainer.setEnabled(true);
                     view.loadUrl(url);
                     return false;
                 }
@@ -146,6 +147,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
                 swipeContainer.setRefreshing(true);
+            }
+        });
+
+
+        myWebView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                return true;
             }
         });
 
@@ -178,7 +187,7 @@ public class MainActivity extends AppCompatActivity {
                 android.R.color.holo_green_light,
                 android.R.color.holo_orange_light,
                 android.R.color.holo_red_light);
-        swipeContainer.setEnabled(false);
+        swipeContainer.setEnabled(true);
 
 
 
@@ -303,9 +312,6 @@ public class MainActivity extends AppCompatActivity {
             case R.id.action_infobox:
                 myWebView.loadUrl("javascript:toggleInfobox()");
                 return true;
-            case R.id.action_reload:
-                myWebView.reload();
-                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -321,11 +327,16 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case 1:
                     elements = navigation.getJSONObject(lvl1).getJSONArray("children");
-                    title = navigation.getJSONObject(lvl1).getString("title").replace("<br />", "\n");
+                    title = navigation.getJSONObject(lvl1).
+                            getString("title").replace("<br />", "\n");
                     break;
                 case 2:
-                    elements = navigation.getJSONObject(lvl1).getJSONArray("children").getJSONObject(lvl2).getJSONArray("children");
-                    title = navigation.getJSONObject(lvl1).getJSONArray("children").getJSONObject(lvl2).getString("title").replace("<br />", "\n");
+                    elements = navigation.getJSONObject(lvl1).
+                            getJSONArray("children").
+                            getJSONObject(lvl2).getJSONArray("children");
+                    title = navigation.getJSONObject(lvl1).getJSONArray("children").
+                            getJSONObject(lvl2).getString("title").
+                            replace("<br />", "\n");
             }
 
             Menu menu = navigationView.getMenu();
@@ -341,18 +352,7 @@ public class MainActivity extends AppCompatActivity {
         if (myWebView.canGoBack()) {
             myWebView.goBack();
         } else {
-            new AlertDialog.Builder(this)
-                    .setIcon(android.R.drawable.ic_dialog_alert)
-                    .setTitle("App beenden?")
-                    .setMessage("Wollen Sie die App wirklich beenden?")
-                    .setPositiveButton("Ja", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            finish();
-                        }
-                    })
-                    .setNegativeButton("Nein", null)
-                    .show();
+            finish();
         }
     }
 

@@ -79,4 +79,15 @@ public class WebAppInterface {
         intent.putExtras(b);
         mContext.startActivity(intent);
     }
+
+    @JavascriptInterface
+    public void scrollOnTop(boolean onTop) {
+        final Boolean activate = onTop;
+        ((MainActivity)mContext).runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                ((MainActivity)mContext).swipeContainer.setEnabled(activate);
+            }
+        });
+    }
 }
