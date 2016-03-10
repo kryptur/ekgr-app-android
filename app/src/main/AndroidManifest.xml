@@ -25,6 +25,9 @@
                 <data
                     android:host="ekgr.de"
                     android:scheme="http" />
+                <data
+                    android:host="www.ekgr.de"
+                    android:scheme="http" />
 
                 <action android:name="android.intent.action.VIEW" />
 
